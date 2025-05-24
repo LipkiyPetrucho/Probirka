@@ -5,20 +5,21 @@ from .models import Section, Subsection, Test, AdditionalService
 class AdditionalServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdditionalService
-        fields = ('id', 'name', 'price')
+        fields = ("id", "name", "price")
 
 
 class SubsectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subsection
-        fields = ('id', 'name', 'description', 'section')
+        fields = ("id", "name", "description", "section")
 
 
 class NestedSubsectionSerializer(serializers.ModelSerializer):
     """Упрощённый вариант (id + name) для вложенного списка в Section."""
+
     class Meta:
         model = Subsection
-        fields = ('id', 'name')
+        fields = ("id", "name")
 
 
 class SectionSerializer(serializers.ModelSerializer):
@@ -26,7 +27,7 @@ class SectionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Section
-        fields = ('id', 'name', 'description', 'subsections')
+        fields = ("id", "name", "description", "subsections")
 
 
 class TestSerializer(serializers.ModelSerializer):
@@ -35,11 +36,11 @@ class TestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Test
         fields = (
-            'id',
-            'name',
-            'biomaterial',
-            'price',
-            'section',
-            'subsection',
-            'additional_service',
+            "id",
+            "name",
+            "biomaterial",
+            "price",
+            "section",
+            "subsection",
+            "additional_service",
         )

@@ -13,6 +13,7 @@ class ContactMessageAdmin(admin.ModelAdmin):
 
     def short_msg(self, obj):
         return (obj.message[:60] + "…") if len(obj.message) > 60 else obj.message
+
     short_msg.short_description = "Message"
 
     @admin.action(description="Mark selected messages as processed")
@@ -21,5 +22,6 @@ class ContactMessageAdmin(admin.ModelAdmin):
         self.message_user(request, f"{updated} message(s) marked as processed")
 
         # Отключаем добавление новых сообщений вручную — только просмотр
+
     def has_add_permission(self, request):
         return False

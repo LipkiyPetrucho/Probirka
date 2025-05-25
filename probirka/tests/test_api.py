@@ -47,6 +47,38 @@ class CatalogAPITests(APITestCase):
         self.assertGreaterEqual(resp.data["count"], 1)
 
 
+class CatalogNegativeAPITests(APITestCase):
+    """negative-тесты для /api/ каталога."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.sec = Section.objects.create(name='Аллергия', slug='neg-allergy')
+        cls.sub = Subsection.objects.create(name='ИммуноCAP', section=cls.sec)
+        cls.test = Test.objects.create(
+            name='Глютен, IgE', biomaterial='кровь', price='600',
+            section=cls.sec, subsection=cls.sub,
+        )
+
+    # ───────────────────── изображения ошибок ──────────────────────
+    def test_tests_post_without_auth_forbidden(self):
+        """POST без авторизации → 403 Forbidden (только для staff)."""
+        url = reverse('test-list')
+        resp = self.client.post(url, data={})
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_tests_detail_not_found(self):
+        """GET несуществующего id → 404."""
+        url = reverse('test-detail', args=[9999])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_tests_filter_invalid_section(self):
+        """section=abc (не int) → 400 Bad Request."""
+        url = reverse('test-list') + '?section=abc'
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+
 class FeedbackAPITests(APITestCase):
     def test_contact_post_creates_message(self):
         url = reverse("contact-message")  # зададим имя в urls.py
@@ -56,3 +88,21 @@ class FeedbackAPITests(APITestCase):
         resp = self.client.post(url, payload, format="json")
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertEqual(ContactMessage.objects.count(), 1)
+
+    # ───────────────────────── feedback ─────────────────────────────
+    def test_contact_missing_fields(self):
+        """Отправка пустого тела → 400 с деталями валидации."""
+        url = reverse('contact-message')
+        resp = self.client.post(url, data={}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('name', resp.data)  # обязательные поля
+        self.assertIn('email', resp.data)
+        self.assertIn('message', resp.data)
+
+    def test_contact_invalid_email(self):
+        """Неверный формат email → 400."""
+        url = reverse('contact-message')
+        payload = {'name': 'Bob', 'email': 'not-an-email', 'message': 'Hi'}
+        resp = self.client.post(url, payload, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('email', resp.data)
